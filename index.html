@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0c1220">
-<title>BTC Risk Sentinel — Live Bitcoin, Sketch Scenarios & Sentiment</title>
+<title>Bitcoin Forecast Lab · Timestral-5M + DeepSeek · BTC Risk Sentinel</title>
 <style>
 :root{color-scheme:dark;--bg:#080d17;--surface:#101827;--surface2:#141f30;--stroke:#26354b;--text:#ecf4ff;--muted:#94a8c1;--mint:#4adeb6;--cyan:#6aabff;--amber:#f5bf69;--red:#ff7387;--purple:#aa9aff}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#14233a 0,transparent 36%),var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:var(--text);font-size:14px}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.42;cursor:not-allowed}a{color:#96d8ff;text-decoration:none}a:hover{text-decoration:underline}
@@ -24,7 +24,7 @@
 <body>
 <div class="shell">
   <header>
-    <div class="brand"><div class="brandmark">₿</div><div><h1>Bitcoin Risk Sentinel</h1><div class="eyebrow">Live market • Draw scenarios • AI sentiment</div></div></div>
+    <div class="brand"><div class="brandmark">₿</div><div><h1>Bitcoin Risk Sentinel</h1><div class="eyebrow">Live BTC • Timestral forecasts • Accuracy tracking • DeepSeek sentiment</div></div></div>
     <div class="head-actions"><div class="pill"><span id="liveDot" class="dot"></span><span id="liveStatus">Connecting to live BTC…</span></div><button class="btn small outline" id="notificationBtn">Enable alerts</button><button class="btn small" id="settingsBtn">⚙ Settings</button></div>
   </header>
   <div class="metrics">
@@ -51,7 +51,8 @@
   </div><div class="dialog-footer"><button class="btn outline" type="button" id="resetDefaults">Restore defaults</button><button class="btn primary" type="submit" value="save">Save settings</button></div></form></dialog>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <script src="./core.js"></script>
-<script src="./deepseek.js"></script>
+<script src="./deepseek.js?v=2.0"></script>
+<script src="./forecast-engine.js?v=2.0"></script>
 <script>
 (() => {
 'use strict';
@@ -225,5 +226,6 @@ function setup(){populateSettings();renderLog();renderUsage();renderSentiment();
 setup();
 })();
 </script>
+<script src="./forecast-ui.js?v=2.0"></script>
 </body>
 </html>
