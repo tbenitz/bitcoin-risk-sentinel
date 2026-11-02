@@ -1,8 +1,32 @@
-# Bitcoin Risk Sentinel — Direct DeepSeek edition
+# Bitcoin Risk Sentinel — Timestral Forecast Lab + DeepSeek
 
 A self-contained Bitcoin monitoring dashboard for GitHub Pages: live BTC/USD spot, risk thresholds, optional position monitoring, hand-drawn future scenarios, DeepSeek sentiment analysis, and estimated versus actual AI token usage.
 
 **No Cloudflare account or Worker. No market API key. No trading credentials.**
+
+## Bitcoin Forecast Lab — real Mistral Timestral-5M
+
+**This is an actual probabilistic time-series forecast, not a drawing extrapolation or a DeepSeek-written prediction.** It uses the Mistral Timestral-5M checkpoint, the same model family as [Sketch-a-Series](https://huggingface.co/spaces/townbox/sketch-a-series), with real BTC candles. It generates a median and 10–90% uncertainty band. The original freehand scenario tool is still available below the forecasting panel.
+
+**To activate genuine model inference (one-time setup):**
+
+1. Create a **Docker Space** at [Hugging Face Spaces](https://huggingface.co/new-space). Name it e.g. \`btc-timestral-model\`.
+2. Copy the contents of the repository's [\`timestral-space/\`](timestral-space/) directory into the **root** of your new Space repository: \`README.md\`, \`Dockerfile\`, \`app.py\`.
+3. Wait for the Space to build and run. Its base URL will look like \`https://YOURNAME-btc-timestral-model.hf.space\`; test \`/health\`.
+4. Open https://tbenitz.github.io/bitcoin-risk-sentinel/ → **Forecast model settings**, paste that URL, and press **Save model settings**.
+5. Select 1h, 6h, 24h or 7d and press **Forecast now** or **Start auto**. Each successful forecast persists in your browser.
+
+GitHub Pages hosts the user interface but **cannot execute this Python/PyTorch model on its own**. This project deliberately includes a separate Hugging Face deployment template, not a Cloudflare Worker. The Space may sleep when idle and CPU processing/network limits vary. A model endpoint is not deployed automatically by uploading these files to GitHub. Without the endpoint, the site will honestly say a forecast is unavailable.
+
+### How it measures and improves prediction quality
+
+- Coinbase public **completed candles** are passed into Timestral (5-minute bars for 1h; 15-minute for 6h; hourly for 24h; 6-hour for 7d).
+- The prediction is recorded with its as-of candle, model quantiles and target timestamps. We never label a hypothetical or future price as an observation.
+- When future candles actually close, the page matches each forecast to its due time. It calculates percentage error, directional accuracy and how often the 10–90% band contains the actual BTC close.
+- A **flat-price/no-change baseline** is scored side-by-side. After 24 verified prediction steps in a horizon, a simple adaptive layer updates model-versus-baseline weighting, bias correction and interval width from **previously scored data only**. Historical forecasts are never retroactively changed.
+- Use **Export prediction history** to inspect every stored original median, adjusted forecast, quantile bounds and actual price. History remains in browser localStorage; clearing browser storage loses it. **This is calibration/model selection, not training Timestral weights.**
+
+Important: 24 scored steps may be correlated or overlap because forecasts have multiple steps. Apparent improvements may be temporary; a model can have worse performance than a flat baseline during some market conditions. There is no guaranteed accuracy, profit, or financial advice. Neither a free public website nor a sleeping Space can run background checks while your browser is closed.
 
 ## Live Bitcoin prices (free public APIs)
 
@@ -47,6 +71,8 @@ A search may be billed even if its later model call fails. The browser's budgets
 npm test
 node --check core.js
 node --check deepseek.js
+node --check forecast-engine.js
+node --check forecast-ui.js
 python3 -m http.server 8000
 ```
 
@@ -54,6 +80,9 @@ The tests mock the DeepSeek API so they do not use an actual API key. They verif
 
 ## Official references
 
+- [Timestral-5M model card](https://huggingface.co/mistralai/Timestral-5M)
+- [Official Timestral Python inference](https://github.com/mistralai/timestral)
+- [Sketch-a-Series original demo](https://huggingface.co/spaces/townbox/sketch-a-series)
 - [Coinbase Exchange WebSocket](https://docs.cdp.coinbase.com/exchange/websocket-feed/overview)
 - [Kraken REST market data](https://docs.kraken.com/api/docs/rest-api/get-ticker-information/)
 - [DeepSeek Search & Fetch](https://api-docs.deepseek.com/guides/search/)
