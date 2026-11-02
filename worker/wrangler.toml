@@ -1,0 +1,12 @@
+name = "bitcoin-risk-sentinel-api"
+main = "worker.js"
+compatibility_date = "2026-10-15"
+
+# Set ALLOWED_ORIGIN to the exact GitHub Pages origin, e.g. https://YOURNAME.github.io
+# You may comma-separate multiple exact origins for local development.
+[vars]
+ALLOWED_ORIGIN = "https://YOURNAME.github.io"
+
+# Set secrets separately (do not commit them):
+# npx wrangler secret put DEEPSEEK_API_KEY
+# npx wrangler secret put DASHBOARD_ACCESS_TOKEN
