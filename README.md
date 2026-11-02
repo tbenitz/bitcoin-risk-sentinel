@@ -1,92 +1,72 @@
-# Bitcoin Risk Sentinel — Timestral Forecast Lab + DeepSeek
+# Bitcoin Risk Sentinel — direct DeepSeek edition
 
-A self-contained Bitcoin monitoring dashboard for GitHub Pages: live BTC/USD spot, risk thresholds, optional position monitoring, hand-drawn future scenarios, DeepSeek sentiment analysis, and estimated versus actual AI token usage.
+A single-page Bitcoin monitor for GitHub Pages, with an interactive scenario sketch, configurable risk alerts, live BTC/USD data, optional DeepSeek news sentiment analysis and projected versus actual token accounting.
 
-**No Cloudflare account or Worker. No market API key. No trading credentials.**
+**No Cloudflare account, Worker, Node server, API gateway, database, or crypto exchange account is required for the dashboard.** `index.html`, `core.js`, and `deepseek.js` make up the functional browser app. There is no trading or wallet access.
 
-## Bitcoin Forecast Lab — real Mistral Timestral-5M
+## Live market data: no API keys required
 
-**This is an actual probabilistic time-series forecast, not a drawing extrapolation or a DeepSeek-written prediction.** It uses the Mistral Timestral-5M checkpoint, the same model family as [Sketch-a-Series](https://huggingface.co/spaces/townbox/sketch-a-series), with real BTC candles. It generates a median and 10–90% uncertainty band. The original freehand scenario tool is still available below the forecasting panel.
+- Coinbase Exchange WebSocket `wss://ws-feed.exchange.coinbase.com`, public `ticker` for BTC-USD. Updates on trades, rather than on a fixed one-second timer.
+- Coinbase public REST fallback `https://api.exchange.coinbase.com/products/BTC-USD/ticker` and 24-hour statistics endpoint `.../stats`.
+- Kraken public REST backup `https://api.kraken.com/0/public/Ticker?pair=XBTUSD` and public OHLC history.
+- Candle history and charts reflect observed exchange data. If feeds are unavailable the UI says so; it never invents market prices.
 
-**To activate genuine model inference (one-time setup):**
+Data sources: [Coinbase Exchange](https://docs.cdp.coinbase.com/exchange/websocket-feed/overview), [Kraken](https://docs.kraken.com/api/docs/rest-api/get-ticker-information/).
 
-1. Create a **Docker Space** at [Hugging Face Spaces](https://huggingface.co/new-space). Name it e.g. \`btc-timestral-model\`.
-2. Copy the contents of the repository's [\`timestral-space/\`](timestral-space/) directory into the **root** of your new Space repository: \`README.md\`, \`Dockerfile\`, \`app.py\`.
-3. Wait for the Space to build and run. Its base URL will look like \`https://YOURNAME-btc-timestral-model.hf.space\`; test \`/health\`.
-4. Open https://tbenitz.github.io/bitcoin-risk-sentinel/ → **Forecast model settings**, paste that URL, and press **Save model settings**.
-5. Select 1h, 6h, 24h or 7d and press **Forecast now** or **Start auto**. Each successful forecast persists in your browser.
+## DeepSeek: enter your own key in Settings
 
-GitHub Pages hosts the user interface but **cannot execute this Python/PyTorch model on its own**. This project deliberately includes a separate Hugging Face deployment template, not a Cloudflare Worker. The Space may sleep when idle and CPU processing/network limits vary. A model endpoint is not deployed automatically by uploading these files to GitHub. Without the endpoint, the site will honestly say a forecast is unavailable.
+1. Open the dashboard and click **Settings**.
+2. Paste your DeepSeek API key under **DeepSeek API connection**; choose Search API + Flash (default) or V4 Pro web search.
+3. Save, then select **Check now** to run one analysis. You can set a repeating interval and select **Start auto-checks**.
+4. Draw part of a future path and click **AI continue** to extend that *hypothetical drawing*, not to predict Bitcoin's future.
 
-### How it measures and improves prediction quality
+DeepSeek calls from your browser are made directly to `https://api.deepseek.com/v1/tools/search` and `https://api.deepseek.com/responses` using the key you supplied. The search API provides up-to-date article summaries for the Flash model; V4 Pro has built-in web search. The app shows real input/output tokens reported by DeepSeek and per-search estimates. **Price streaming consumes zero DeepSeek tokens.**
 
-- Coinbase public **completed candles** are passed into Timestral (5-minute bars for 1h; 15-minute for 6h; hourly for 24h; 6-hour for 7d).
-- The prediction is recorded with its as-of candle, model quantiles and target timestamps. We never label a hypothetical or future price as an observation.
-- When future candles actually close, the page matches each forecast to its due time. It calculates percentage error, directional accuracy and how often the 10–90% band contains the actual BTC close.
-- A **flat-price/no-change baseline** is scored side-by-side. After 24 verified prediction steps in a horizon, a simple adaptive layer updates model-versus-baseline weighting, bias correction and interval width from **previously scored data only**. Historical forecasts are never retroactively changed.
-- Use **Export prediction history** to inspect every stored original median, adjusted forecast, quantile bounds and actual price. History remains in browser localStorage; clearing browser storage loses it. **This is calibration/model selection, not training Timestral weights.**
+### Important direct-browser limitation: CORS
 
-Important: 24 scored steps may be correlated or overlap because forecasts have multiple steps. Apparent improvements may be temporary; a model can have worse performance than a flat baseline during some market conditions. There is no guaranteed accuracy, profit, or financial advice. Neither a free public website nor a sleeping Space can run background checks while your browser is closed.
+**A static GitHub Pages site cannot force DeepSeek to accept cross-origin browser requests.** The DeepSeek documentation documents the API endpoints but does not guarantee browser CORS compatibility. If DeepSeek blocks `Origin: https://tbenitz.github.io`, a direct `fetch` will fail before the API response is made available to the page. The dashboard will tell you the failure rather than claiming the AI ran. That is a server policy outside the site's control; price monitoring, charting, and risk alerts still run without AI. No client-side trick can safely defeat browser CORS restrictions. To guarantee AI calls in all browsers would require an API provider that explicitly supports browser clients, or a server-side relay; **this project deliberately does not require or deploy either relay.**
 
-## Live Bitcoin prices (free public APIs)
+### Key handling and safety
 
-- **Coinbase:** `wss://ws-feed.exchange.coinbase.com` public BTC-USD ticker for real-time trades, plus REST for the spot price, 24-hour statistics and price candles.
-- **Kraken:** `https://api.kraken.com/0/public/Ticker?pair=XBTUSD` and public OHLC history as fallback.
-- Market prices update independently of DeepSeek. If markets are inaccessible the UI reports an error, rather than inventing numbers.
+Your DeepSeek key is never committed to GitHub. It is sent in the HTTPS Authorization header to DeepSeek when you invoke AI, and stored in this tab's `sessionStorage` to survive refresh, not in `localStorage` or exported session JSON. Clearing the tab's session data removes it. Because this is a public browser app, use only your own key, keep your device secure, and set a spending budget in the DeepSeek account as well. **Frontend code cannot provide server-side secrecy or guarantee a billing cap.** Do not share screenshots containing your key. The app does not store exchange credentials, seed phrases or wallet keys.
 
-## DeepSeek connection
+## GitHub Pages
 
-1. Open your GitHub Pages site: https://tbenitz.github.io/bitcoin-risk-sentinel/
-2. Open **Settings** → **DeepSeek API connection** and paste your own key.
-3. Choose **DeepSeek Search API + Flash** (default) or **V4 Pro + built-in web search**, then select your sentiment-check interval.
-4. Click **Check now** for an immediate news analysis, or **Start auto-checks** to repeat while the tab stays open.
-5. Optionally draw a partial trajectory on the chart and select **AI continue**. The AI extension is illustrative, **not a price prediction**.
+In your repo, open **Settings → Pages**, choose **Deploy from a branch**, `main`, `/ (root)`, and save. Expected public URL: `https://tbenitz.github.io/bitcoin-risk-sentinel/`. You can also open `index.html` locally in Chrome; internet access is required for live prices and DeepSeek.
 
-The browser sends requests directly to official DeepSeek endpoints:
+## Risk monitoring and scenarios
 
-- `POST https://api.deepseek.com/v1/tools/search` (Flash live search mode).
-- `POST https://api.deepseek.com/responses` (Flash sentiment, optional sketch continuation, or V4 Pro with built-in web search).
+Configurable price drop, 24h drawdown, volatility range, absolute price floor, entry-based stop-loss warning, position allocation, bearish AI sentiment, sketched downside and alert cooldown. Position size, entry price and portfolio value are optional. No financial recommendations or trade execution. Notifications depend on browser permission.
 
-The key is kept in **sessionStorage for this tab**, not committed to GitHub, written to localStorage, or included in session exports. Only enter it on a device you trust.
+AI checks run only while the page is open; tab sleep can delay them. Sketch continuation uses DeepSeek Flash for *illustration*, not validated forecasting. Sentiment scores are subjective and sources can be incomplete or wrong. No simulated price data is shown.
 
-**Important browser CORS limitation:** The official DeepSeek documentation does *not* guarantee cross-origin requests from GitHub Pages are supported. If their API refuses browser origins, browsers will block direct `fetch` and the app will show a CORS/network error. A static site cannot override the provider's CORS policy. The Bitcoin price and risk features continue working without AI. Guaranteed cross-browser DeepSeek access would require a provider-supported browser API or a server relay, which is deliberately **not included** here.
+## Token/cost projections
 
-## GitHub Pages publishing
+Estimate hours, interval, assumed input/output tokens per call, model and peak/off-peak prices. The dashboard projects checks and token/cost totals, counts successful DeepSeek calls, and records actual input/output/cache token usage returned by the API. Search/Fetch calls are billed separately from tokens. Budget limits are preliminary **client-side estimates**, not a guarantee that a partially completed or failed request cannot incur charges. A web search can incur a separate fee even when the following model request fails.
 
-On GitHub: **Settings → Pages → Deploy from a branch → main → / (root) → Save**. You do not need npm install, secrets, build steps, or Cloudflare to serve the site. A local `index.html` can also be opened in Chrome (internet is needed for live data).
+See [DeepSeek Search & Fetch](https://api-docs.deepseek.com/guides/search/), [DeepSeek Responses](https://api-docs.deepseek.com/guides/responses_api/), [official pricing](https://api-docs.deepseek.com/quick_start/pricing/).
 
-## Risk options
+## On-device Timestral-5M Bitcoin forecasting
 
-Edit percentage drop, 24-hour drawdown, intraday range, stop-loss level relative to entry, hard USD price floor, BTC quantity, optional portfolio size and allocation cap, bearish sentiment threshold, hypothetical scenario downside, and notification cooldown. All trades are informational alerts only; **no order execution, wallets or accounts**.
+The **Forecast Lab** runs the actual Mistral Timestral-5M weights on your own device in Chrome/Chromium via ONNX Runtime Web. No Hugging Face Space, Cloudflare Worker, Python backend, subscription, or inference API key is required. The CPU/WebAssembly backend is used inside a Web Worker, so inference does not freeze the interface.
 
-## Usage and cost estimates
+1. Open your GitHub Pages dashboard in Chrome and click **Forecast now** (or open **Forecast settings** and press **Download / initialize model**).
+2. The browser fetches the **21,212,151-byte / 21.2 MB** Timestral-5M ONNX model directly from Hugging Face once and caches it in **IndexedDB** for subsequent visits. The ONNX Runtime JavaScript/WASM files are fetched from jsDelivr. A network connection is needed for initial assets and fresh BTC candles. If site data or cache is cleared, the model downloads again.
+3. Public Coinbase Exchange REST endpoints supply real, complete historical candles. This is **price-data retrieval**, not a Timestral inference API. The observed BTC prices stay in the browser for the forecast; model inference is local.
+4. Forecast output includes median, 10th and 90th quantile levels over a maximum **32-step horizon**, the limit of this published ONNX export. Available choices are 1h (12×5min), 6h (24×15min), 24h (24×1h) and 7d (28×6h).
+5. As real future candles close, the app records realized error, directional accuracy, 80% interval coverage, and a *no-price-change* benchmark. The adaptive calibration uses only already-settled outcomes; it does **not retrain the model's weights**. Forecast history is saved in localStorage. No imaginary market prices are used for performance scoring.
 
-Set session duration, DeepSeek analysis frequency, expected input and output tokens/call, model, pricing assumptions and optional token / USD caps. The dashboard projects session-wide usage and records real usage from successful DeepSeek model API responses; web searches are counted separately. Price feeds use **zero DeepSeek tokens**.
+The browser-on-device ONNX export is hosted at [onnx-community/Timestral-5M-ONNX](https://huggingface.co/onnx-community/Timestral-5M-ONNX) and derives from [Mistral AI's Timestral-5M](https://huggingface.co/mistralai/Timestral-5M). The weights are provided under **Mistral's Modified MIT License** (model attribution: © 2026 Mistral AI; restrictions apply to some high-revenue commercial uses). Original `timestral` inference code is under Apache 2.0. See the model's license before redistributing weights or using them commercially. This repository does not ship model weights and downloads the official ONNX weights from Hugging Face on first use. Browser normalization/masks/denormalization match the published ONNX reference's fixed 512-context, 32-output shape.
 
-A search may be billed even if its later model call fails. The browser's budgets are estimates rather than strict billing restrictions; set provider account limits if needed. Auto-checking only runs while the page is open, subject to background-tab throttling.
+**Important:** The underlying example [Sketch-a-Series](https://huggingface.co/spaces/townbox/sketch-a-series) uses Timestral inference on the Space server's CPU. This implementation instead runs a separate published ONNX conversion of the same Timestral-5M model **inside your browser**. A server is not needed for model predictions, but Internet connectivity is needed for new BTC market data and optional DeepSeek sentiment. Background auto checks run only while the tab is open; browser tab throttling may delay them. Financial price forecasts are uncertain and are not trading advice.
 
-## Testing
+## Development and tests
 
-```sh
+No frontend build process is needed. The forecasting runner is `timestral-worker.js`, preprocessing is `timestral-prep.js`, and the UI is `forecast-ui.js`. The ONNX Runtime package downloads on first use. Run:
+
+```bash
 npm test
-node --check core.js
-node --check deepseek.js
-node --check forecast-engine.js
-node --check forecast-ui.js
 python3 -m http.server 8000
 ```
 
-The tests mock the DeepSeek API so they do not use an actual API key. They verify request shapes, authentication headers, parsing, usage accounting and CORS error handling; they do not prove that DeepSeek permits browser CORS.
-
-## Official references
-
-- [Timestral-5M model card](https://huggingface.co/mistralai/Timestral-5M)
-- [Official Timestral Python inference](https://github.com/mistralai/timestral)
-- [Sketch-a-Series original demo](https://huggingface.co/spaces/townbox/sketch-a-series)
-- [Coinbase Exchange WebSocket](https://docs.cdp.coinbase.com/exchange/websocket-feed/overview)
-- [Kraken REST market data](https://docs.kraken.com/api/docs/rest-api/get-ticker-information/)
-- [DeepSeek Search & Fetch](https://api-docs.deepseek.com/guides/search/)
-- [DeepSeek Responses API](https://api-docs.deepseek.com/guides/responses_api/)
-- [DeepSeek pricing](https://api-docs.deepseek.com/quick_start/pricing/)
-
-This dashboard is for personal research only, not financial advice.
+Then open `http://localhost:8000`. Unit tests verify preprocessing, output dimensions, pricing/risk calculations, and mocked DeepSeek requests, not live model execution, market response, or DeepSeek browser CORS.
