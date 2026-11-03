@@ -13,3 +13,9 @@ jobs:
       - run: npm test
       - run: node --check core.js
       - run: node --check deepseek.js
+      - run: node --check forecast-ui.js
+      - run: node --check forecast-engine.js
+      - run: node --check timestral-worker.js
+      - run: node --check timestral-prep.js
+      - run: node --check comparison-engine.js
+      - run: node --check comparison-ui.js
