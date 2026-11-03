@@ -70,3 +70,13 @@ python3 -m http.server 8000
 ```
 
 Then open `http://localhost:8000`. Unit tests verify preprocessing, output dimensions, pricing/risk calculations, and mocked DeepSeek requests, not live model execution, market response, or DeepSeek browser CORS.
+
+## Draw → Lock → Verify: fixed-time BTC forecast comparisons
+
+The top **Draw · Lock · Verify BTC Predictions** chart solves the previous moving-line problem. Start drawing in the future area, then click **Lock & compare**. The drawing is frozen to its original live BTC price, UTC timestamp, and selected 1h/6h/24h/7d horizon. Incoming BTC prices **do not** re-anchor or move it. A vertical LIVE marker advances on the same fixed time axis.
+
+The app requests an on-device Timestral-5M forecast for the corresponding horizon and preserves Timestral's own timestamp, median and forecast interval. Its origin may be the most recent *closed candle*, which can be earlier than the moment you drew; both paths are plotted against their real timestamps rather than pretending they started at the same moment. If Timestral fails or is unavailable, your locked drawing is still recorded and evaluated. The shaded amber band represents model uncertainty, not guaranteed limits.
+
+The cyan line shows actual Bitcoin prices: recent live feed samples plus historical **closed** Coinbase candles. Backfilling happens when you revisit a saved prediction and periodically while the page remains open. The timestamp-by-timestamp table includes your predicted price, the model's predicted price when eligible, the observed price and whether verification is pending. Accuracy metrics use only verified closed candles; when comparing your line against Timestral, shared-checkpoint errors are based on the **same** actual observations. Predictions stay pending until their target timestamps have actually passed.
+
+The **Review** selector restores saved, immutable sketches from browser localStorage. You can export the entire ledger to JSON. Older sketches made before this feature did not capture fixed origin timestamps and cannot be accurately reconstructed. The forecasting engine does not change historical predictions or retrain its neural-network weights; future model outputs can be calibrated using resolved forecasts. This is experimental analysis, not a trading signal or a claim of predictive accuracy.
