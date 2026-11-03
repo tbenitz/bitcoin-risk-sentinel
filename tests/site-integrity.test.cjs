@@ -16,7 +16,7 @@ test('published HTML is not corrupted with JavaScript visible after closing html
  assert.doesNotThrow(()=>new vm.Script(inline));
 });
 test('all client-side scripts parse and on-device Timestral inference is bundled',()=>{
- for(const file of ['core.js','deepseek.js','forecast-engine.js','forecast-ui.js','comparison-engine.js','comparison-ui.js','timestral-prep.js','timestral-worker.js']){
+ for(const file of ['core.js','deepseek.js','forecast-engine.js','forecast-ui.js','comparison-engine.js','comparison-ui.js','forecast-signals.js','timestral-prep.js','timestral-worker.js']){
   const code=fs.readFileSync(path.join(root,file),'utf8');
   assert.doesNotThrow(()=>new vm.Script(code),file);
  }
@@ -28,4 +28,5 @@ test('all client-side scripts parse and on-device Timestral inference is bundled
  const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
  assert.match(html,/comparison-engine\.js/);
  assert.match(html,/comparison-ui\.js/);
+ assert.match(html,/forecast-signals\.js/);
 });
