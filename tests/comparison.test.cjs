@@ -39,3 +39,12 @@ test('rendered dashboard imports comparison scripts and keeps existing model inf
  assert.match(html,/comparison-engine\.js/);assert.match(html,/comparison-ui\.js/);assert.match(html,/BtcCompare\.draw/);
  assert.match(ui,/localStorage/);assert.match(ui,/modelId/);assert.match(ui,/normalizeActual/);assert.match(model,/BtcForecastTracker/);
 });
+test('HTML has one final closing tag and its inline scripts parse as JavaScript',()=>{
+ const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+ const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+ assert.equal((html.match(/<\\/html>/g)||[]).length,1);
+ assert.ok(html.trim().endsWith('</html>'),'unexpected script or markup after closing html tag');
+ const blocks=[...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/g)].map(m=>m[1]).filter(x=>x.trim());
+ assert.ok(blocks.length>0);
+ for(const block of blocks)assert.doesNotThrow(()=>new vm.Script(block));
+});
