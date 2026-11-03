@@ -15,10 +15,17 @@ test('published HTML is not corrupted with JavaScript visible after closing html
  assert.ok(inline&&inline.includes('function renderUsage'));
  assert.doesNotThrow(()=>new vm.Script(inline));
 });
-test('all client-side scripts parse and the Timestral model template exists',()=>{
- for(const file of ['core.js','deepseek.js','forecast-engine.js','forecast-ui.js']){
+test('all client-side scripts parse and on-device Timestral inference is bundled',()=>{
+ for(const file of ['core.js','deepseek.js','forecast-engine.js','forecast-ui.js','comparison-engine.js','comparison-ui.js','timestral-prep.js','timestral-worker.js']){
   const code=fs.readFileSync(path.join(root,file),'utf8');
   assert.doesNotThrow(()=>new vm.Script(code),file);
  }
- for(const file of ['Dockerfile','app.py','README.md'])assert.ok(fs.existsSync(path.join(root,'timestral-space',file)));
+ const worker=fs.readFileSync(path.join(root,'timestral-worker.js'),'utf8');
+ assert.match(worker,/onnxruntime-web/);
+ assert.match(worker,/importScripts\(['"]\.\/timestral-prep\.js['"]\)/);
+ const forecast=fs.readFileSync(path.join(root,'forecast-ui.js'),'utf8');
+ assert.match(forecast,/new Worker\(['"]\.\/timestral-worker\.js['"]\)/);
+ const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
+ assert.match(html,/comparison-engine\.js/);
+ assert.match(html,/comparison-ui\.js/);
 });
