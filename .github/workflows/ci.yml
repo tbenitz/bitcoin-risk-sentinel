@@ -19,3 +19,4 @@ jobs:
       - run: node --check timestral-prep.js
       - run: node --check comparison-engine.js
       - run: node --check comparison-ui.js
+      - run: node --check forecast-signals.js
