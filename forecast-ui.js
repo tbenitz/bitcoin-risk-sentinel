@@ -50,14 +50,29 @@ function localForecast(type,prices=[]){
  });
 }
 async function json(url,init){const ctrl=new AbortController();const timer=setTimeout(()=>ctrl.abort(),120000);try{const r=await fetch(url,{...init,signal:ctrl.signal,cache:'no-store'});if(!r.ok){let msg='HTTP '+r.status;try{const x=await r.json();msg+=x.detail?' — '+JSON.stringify(x.detail).slice(0,200):'';}catch{}throw Error(msg);}return await r.json();}finally{clearTimeout(timer);}}
-async function loadCandles(horizon){const cfg=E.HORIZONS[horizon],now=Date.now(),start=now-cfg.seconds*1000*250;const url='https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity='+cfg.seconds+'&start='+new Date(start).toISOString()+'&end='+new Date(now).toISOString();const raw=await json(url);const data=E.parseCandles(raw,cfg.seconds,now);if(data.length<64)throw Error('Coinbase returned too few complete candles ('+data.length+'). Try later.');return data.slice(-210);}
+const candleCache=new Map();
+async function loadCandles(horizon){
+ const cfg=E.HORIZONS[horizon],now=Date.now(),ms=cfg.seconds*1000;
+ if(!cfg)throw Error('Unsupported BTC candle timeframe');
+ const end=Math.floor(now/ms)*ms,cache=candleCache.get(horizon);
+ if(cache?.end===end&&cache.points?.length>=120)return cache.points;
+ // Coinbase permits at most 300 candles per request. Two 280-bar windows give 512+ closed candles.
+ const pages=await Promise.all([0,1].map(async page=>{
+   const endAt=end-page*280*ms,startAt=endAt-280*ms;
+   const url='https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity='+cfg.seconds+'&start='+new Date(startAt).toISOString()+'&end='+new Date(endAt).toISOString();
+   return json(url);
+ }));
+ const data=E.parseCandles(pages.flat(),cfg.seconds,now).slice(-512);
+ if(data.length<120)throw Error('Coinbase returned too few complete candles ('+data.length+'). Need at least 120 for pattern forecasting.');
+ candleCache.set(horizon,{end,points:data});return data;
+}
 async function evaluateAll(){let changed=false;for(const horizon of Object.keys(E.HORIZONS)){const pending=rows.some(r=>r.horizon===horizon&&r.points.some(p=>p.actual==null&&p.time<=Date.now()));if(!pending)continue;try{const candles=await loadCandles(horizon);const count=E.settle(rows.filter(r=>r.horizon===horizon),candles);if(count)changed=true;}catch(e){showError('Could not score '+horizon+': '+e.message);}}if(changed){persist();window.dispatchEvent(new Event('btc:model-outcomes'));}renderStats();}
 async function generate(requestedHorizon=null){if(working)return null;working=true;showError('');$('btcForecastNow').disabled=true;status('Fetching BTC candles…');try{
  const horizon=E.HORIZONS[requestedHorizon]?requestedHorizon:opts.horizon,cfg=E.HORIZONS[horizon],candles=await loadCandles(horizon);if(horizon===opts.horizon)observed=candles;
  const last=candles[candles.length-1],asOf=last.time+cfg.seconds*1000,anchor=last.price;
  // Re-running the exact same closed candle is not independent evidence.
  const existing=rows.findLast(r=>r.horizon===horizon&&r.asOf===asOf);
- if(existing){if(horizon===opts.horizon)active=existing;status('Latest candle already forecast',true);render();window.dispatchEvent(new CustomEvent('btc:model-forecast',{detail:existing}));return existing;}
+ if(existing){active=existing;status('Latest candle already forecast',true);render();window.dispatchEvent(new CustomEvent('btc:model-forecast',{detail:existing}));return existing;}
  status('Running Timestral-5M on this device…');const response=await localForecast('forecast',candles.map(c=>c.price));if(response.model!=='mistralai/Timestral-5M')throw Error('Local model returned an invalid response.');const sample={...response,median:response.median.slice(0,cfg.steps),q10:response.q10.slice(0,cfg.steps),q90:response.q90.slice(0,cfg.steps)};
  const record=E.forecastRecord({horizon,asOf,anchor,values:sample,records:rows});rows.push(record);if(rows.length>120)rows.splice(0,rows.length-120);active=record;persist();lastCheckAt=Date.now();status('Timestral forecast complete',true);render();window.dispatchEvent(new CustomEvent('btc:model-forecast',{detail:record}));return record;
  }catch(e){status('Forecast not available');showError('Forecast failed: '+(e.name==='AbortError'?'Model initialization timed out':e.message)+'. Existing BTC live prices remain unaffected.');}finally{working=false;$('btcForecastNow').disabled=false;}}
@@ -81,7 +96,7 @@ $('btcForecastHorizon').value=E.HORIZONS[opts.horizon]?opts.horizon:'6h';$('btcF
 $('btcForecastHorizon').onchange=e=>{opts.horizon=e.target.value;saveOpts();observed=[];render();loadCandles(opts.horizon).then(a=>{observed=a;render();}).catch(e=>showError(e.message));};
 $('btcForecastSettings').onclick=()=>{$('btcForecastConfig').open=true;$('btcWarmup').focus();};
 $('btcForecastSave').onclick=()=>{opts.refresh=Number($('btcForecastInterval').value);saveOpts();showError('');$('btcForecastConfig').open=false;schedule();status('Local model · ready to load');};
-window.BtcForecastTracker={getRecords:()=>rows,generateForHorizon:h=>generate(h)};
+window.BtcForecastTracker={getRecords:()=>rows,generateForHorizon:h=>generate(h),loadCandlesForHorizon:h=>loadCandles(h)};
 $('btcForecastNow').onclick=()=>generate();$('btcForecastAuto').onclick=()=>{opts.auto=!opts.auto;schedule();if(opts.auto)generate();};
 $('btcForecastExport').onclick=exportRecords;
 $('btcWarmup').onclick=async()=>{showError('');status('Loading local model…');$('btcWarmup').disabled=true;try{const x=await localForecast('warmup');status('Model ready · '+x.backend,true);}catch(e){status('Local model unavailable');showError(e.message);}finally{$('btcWarmup').disabled=false;}};
