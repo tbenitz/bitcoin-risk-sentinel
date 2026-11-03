@@ -25,5 +25,26 @@ function score(record,model,now=Date.now()){const cfg=CONFIG[record?.horizon];if
  for(let i=1;i<=cfg.steps;i++){const t=record.at+i*cfg.stepMs;if(t>deadline+1)break;const f=i/cfg.steps,user=atFraction(record.sketch,f),prior=actualAt(record.actuals,t,cfg.stepMs),actual=(t<=now&&prior&&prior.time<=now)?prior.price:null,modelPoint=modelAt(model,t);const modelEligible=modelPoint&&model.createdAt<=t;series.push({time:t,actual,user,model:modelEligible?modelPoint.price:null,modelLo:modelEligible?modelPoint.lo:null,modelHi:modelEligible?modelPoint.hi:null,actualAt:prior?.time||null});}
  const sample=series.filter(x=>valid(x.actual));const userSamples=sample.filter(x=>valid(x.user));const modelSamples=sample.filter(x=>valid(x.model));const paired=sample.filter(x=>valid(x.user)&&valid(x.model));const mape=(arr,k)=>arr.length?arr.reduce((n,x)=>n+Math.abs(x[k]-x.actual)/x.actual*100,0)/arr.length:null;const direction=(arr,k)=>{const comparable=arr.filter(x=>Math.abs(x.actual-record.anchor)>0.001&&Math.abs(x[k]-record.anchor)>0.001);return comparable.length?100*comparable.filter(x=>Math.sign(x[k]-record.anchor)===Math.sign(x.actual-record.anchor)).length/comparable.length:null;};
  return{resolved:sample.length,possible:cfg.steps,userResolved:userSamples.length,modelResolved:modelSamples.length,paired:paired.length,userMae:mape(userSamples,'user'),modelMae:mape(modelSamples,'model'),baselineMae:sample.length?sample.reduce((n,x)=>n+Math.abs(record.anchor-x.actual)/x.actual*100,0)/sample.length:null,pairedUserMae:mape(paired,'user'),pairedModelMae:mape(paired,'model'),userDirection:direction(userSamples,'user'),modelDirection:direction(modelSamples,'model'),points:series};}
-return{CONFIG,create,append,atFraction,normalizeActual,mergeActual,modelFor,modelAt,score};
+// Compute meaningful price-axis ranges without altering, inventing or re-anchoring forecasts.
+// In forecast mode exclude the user's sketch (which can be thousands of dollars away),
+// extreme confidence quantiles and distant price history. Always label the magnification.
+function viewRange({anchor,horizon=1,rangePct=5,mode='detail',sketch=[],predictions=[],actuals=[],history=[]}={}){
+ if(!valid(anchor))throw Error('A real anchored BTC price is required for chart scaling.');
+ const prices=a=>(Array.isArray(a)?a:[]).map(Number).filter(valid);
+ const fullPrices=[anchor,...prices(sketch),...prices(predictions),...prices(actuals),...prices(history)];
+ const fullMinimum=anchor*(1-Math.max(.1,rangePct)/100),fullMaximum=anchor*(1+Math.max(.1,rangePct)/100);
+ const fullLo=Math.min(fullMinimum,...fullPrices),fullHi=Math.max(fullMaximum,...fullPrices);
+ const fullPadding=Math.max((fullHi-fullLo)*.08,1);
+ const full={min:Math.max(.01,fullLo-fullPadding),max:fullHi+fullPadding};
+ if(mode!=='detail')return {...full,zoomFactor:1,mode:'full',full};
+ const selected=[anchor,...prices(predictions),...prices(actuals)];
+ const rawLo=Math.min(...selected),rawHi=Math.max(...selected);
+ // A minimum real-dollar scale prevents amplifying cents into apparent meaningful moves.
+ const minSpan=Math.max(10,anchor*.00030*Math.sqrt(Math.max(1,horizon)));
+ const paddedSpan=Math.max(minSpan,(rawHi-rawLo)*1.24);
+ const center=(rawHi+rawLo)*.5;
+ const result={min:Math.max(.01,center-paddedSpan*.5),max:center+paddedSpan*.5};
+ return {...result,zoomFactor:(full.max-full.min)/(result.max-result.min),mode:'detail',full};
+}
+return{CONFIG,create,append,atFraction,normalizeActual,mergeActual,modelFor,modelAt,score,viewRange};
 });
