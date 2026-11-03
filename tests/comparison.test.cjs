@@ -48,3 +48,26 @@ test('HTML has one final closing tag and its inline scripts parse as JavaScript'
  assert.ok(blocks.length>0);
  for(const block of blocks)assert.doesNotThrow(()=>new vm.Script(block));
 });
+
+test('forecast zoom expands legitimate small moves without changing forecast values',()=>{
+ const anchor=77100;
+ const detail=C.viewRange({anchor,horizon:1,rangePct:5,mode:'detail',sketch:[77100,74000,80000],predictions:[77100,77112,77075,77090],actuals:[77101,77088]});
+ const full=C.viewRange({anchor,horizon:1,rangePct:5,mode:'full',sketch:[77100,74000,80000],predictions:[77100,77112,77075,77090]});
+ assert.equal(detail.mode,'detail');
+ assert.ok(detail.min<=77075&&detail.max>=77112);
+ assert.ok(full.min<=74000&&full.max>=80000);
+ assert.ok(detail.max-detail.min<full.max-full.min/20,'detail must not be flattened by the sketch');
+ assert.ok(detail.zoomFactor>20);
+ const again=C.viewRange({anchor,horizon:1,rangePct:5,mode:'detail',sketch:[200000,1],predictions:[77100,77112,77075,77090],actuals:[77101,77088]});
+ assert.deepEqual({min:detail.min,max:detail.max},{min:again.min,max:again.max},'changing the sketch must not alter forecast zoom');
+});
+test('chart contains selectable full and zoom ranges and explicitly displays real forecast changes',()=>{
+ const fs=require('node:fs'),path=require('node:path');const source=fs.readFileSync(path.join(__dirname,'../comparison-ui.js'),'utf8');
+ assert.match(source,/Forecast zoom · reveal moves/);
+ assert.match(source,/Full range · include sketch/);
+ assert.match(source,/E\.viewRange/);
+ assert.match(source,/Forecast values are unchanged/);
+ assert.match(source,/sketchInView/);
+ assert.match(source,/g\.range\.mode==='full'/);
+ assert.match(source,/toFixed\(3\)/);
+});
