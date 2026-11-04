@@ -1,0 +1,7 @@
+{
+  "format": "btc-public-forecast-v1",
+  "updatedAt": null,
+  "source": "Coinbase closed BTC/USD candles",
+  "frequency": "Best-effort GitHub Actions, twice hourly",
+  "records": []
+}

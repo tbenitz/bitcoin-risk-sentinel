@@ -1,51 +1,57 @@
-# Bitcoin Forecast Lab — Draw • Predict • Verify
+# Bitcoin Forecast Lab — one chart, automatic predictions
 
-A single-chart, browser-based BTC/USD forecasting experiment for GitHub Pages. **This version replaces the old two-chart layout** and runs an automated, timestamped research loop:
+**Open:** https://tbenitz.github.io/bitcoin-risk-sentinel/
 
-1. Get real, **fully closed** exchange candles from Coinbase (Kraken fallback). Coinbase calls are split into 275-candle windows to respect its 300-candle maximum.
-2. Compute a forecast **before its target candles close**. The new prediction and all its method outputs are frozen with an absolute creation time, input-candle cutoff, data source, and weights.
-3. Allow the user to **draw an optional purple path on the same chart**. Releasing the pointer automatically saves a separate prediction with the drawn path and a fresh model forecast. No separate confirmation or second graph is needed.
-4. Draw the algorithm's frozen predicted path in amber; as real BTC candles finish, draw actual outcomes in cyan. The predictions **never shift forward** as prices change.
-5. Score each checkpoint only from real future closed candles (not a chart interpolation or synthetic price). The app shows forecast MAPE, direction, and the user's own accuracy where available.
-6. After at least eight **fully resolved** historical forecasts per candidate method, change future ensemble weights using **only previously verified** errors. Older predictions never change. This is evidence-based recalibration/selection, **not retraining Timestral's neural-network weights**.
-7. Retain previous forecasts for review; provide an export/import format and **read-only share links** that include the original prediction. Visitors opening such a link can fetch the actual market history and review the result without needing the creator's browser storage.
+The app is intentionally simple: **the computer predicts automatically** using *real, completed BTC/USD market candles*; you can optionally draw a purple prediction **one time** and leave it on screen. The app then watches Bitcoin, verifies each forecast against **actual future completed candles**, records the results, and adjusts **future** method weights after enough completed results exist. There is **only one graph**. Previous results are one click away in a separate window.
 
-## Use
+## What you'll see
 
-Open `https://tbenitz.github.io/bitcoin-risk-sentinel/`. The site forecasts automatically on opening once enough real BTC candles load, and whenever another selected-horizon candle closes (minimum spacing configured in Settings). Draw a line in the right-hand shaded future area and release the mouse/finger; it is saved automatically. Choose a previous prediction in the history to review it. **Viewing latest** returns to the current forecast.
+- **Gold:** the model's forecast, frozen before the later prices are known.
+- **Blue:** live/verified BTC price movement after the forecast, at original timestamps.
+- **Purple:** optional line you draw over the *remaining future* portion of that existing model forecast. **Your line is saved and pinned** to the chart on mouse release. It stays there even if the system makes additional automatic predictions. You never need to draw again to keep automatic forecasting running.
+- **Green:** the actual, historical Coinbase/Kraken prices used as input.
+- **Four small numbers:** predicted move, observed move, verified error, completed-forecast learning count.
 
-Choose 1h/6h/24h/7d. Candles are 5m/15m/1h/6h, respectively. Timestral's local ONNX export has a 512-candle context and a 32-step horizon, sufficient for these four ranges.
+The chart stays on your pinned drawing even after the prediction ends, so you can see the outcome. Press **Go to newest forecast** when **you** want to return to live automatic forecasts. Previous predictions are accessible via **See all results**, not an endless scrolling page.
 
-The model downloads around 21MB when first used and runs through WebAssembly in a dedicated browser Worker; no Hugging Face inference server, Cloudflare Worker, or model API key. If it cannot initialize, the page explicitly falls back to deterministic momentum and historical-analog forecasts generated from real candles. The amber line **may be mostly flat** when the model finds little directional evidence; the code does not synthesize exciting swings.
+## How it actually predicts and scores
 
-## What really gets learned
+1. Gets **real, completed** public BTC/USD candles (Coinbase Exchange, Kraken fallback) at the selected horizon (1h/6h/24h/7d). Historical candles are fetched in batches smaller than Coinbase's 300-row maximum.
+2. Generates a frozen prediction using a real on-device Timestral-5M ONNX model (if initialized) combined with price-history analog and momentum methods, never invented market observations. Timestral downloads about 21 MB for local WASM inference; if it fails, history-based methods are clearly indicated.
+3. Once the subsequent candles **actually close**, it saves exact matching observed prices and scores mean absolute percentage error and directional accuracy; future samples are never counted as correct or incorrect prematurely.
+4. Recalibrates **only later forecasts** after at least 8 completed and independently scored forecasts per method. The forecasts already saved are never changed. A no-change baseline may outperform fancier methods, and the app can shrink toward it.
+5. Keeps your saved records (including drawings) in your browser. Selecting history *does not* stop automatic background forecasts. Drawings are attached to one existing model record, **not** created as a separate new prediction that gets replaced when the next market candle closes.
 
-Each completed forecast is a frozen record of the input time, source, historical context, horizon, original forecast, each candidate method's path and weighting, and the subsequently observed closing prices. A method's weight for **new** predictions can change only when it has sufficient older outcomes at the same horizon. When the naive unchanged-price baseline has consistently beaten forecasting methods, future predictions are shrunk toward that baseline. History is scored without look-ahead. A sudden market change does not guarantee prediction quality.
+This is a probability/forecasting experiment and **cannot promise profitable predictions**.
 
-The saved local forecast is never re-anchored to the current price. When historical data is missing, a checkpoint remains pending. The app refuses to fabricate historical candles or predictions. Actual prices can disagree slightly between Coinbase and Kraken; forecasts are scored only against candles from the original source.
+## Automatic public history, including when the site is closed
 
-## Previous results and public sharing
+A new GitHub Actions workflow (`.github/workflows/public-forecast.yml`) tries to run at **:17 and :47 every hour** (best effort; GitHub may delay or suspend scheduled jobs). It independently fetches completed Coinbase candles, creates one public **historical-pattern + momentum** forecast, grades outcomes that have since closed, and commits the append-only **frozen prediction ledger** at `data/public-history.json` with a maximum of 350 recent records. It does **not** claim that Timestral ran on GitHub. There is no account, wallet, cloud Worker, or API key required.
 
-- Browser `localStorage` retains up to 250 forecasts by default (adjustable); the old `btc-comparison-ledger-v2` sketches are imported once where timestamps exist, including linked Timestral predictions if they were saved.
-- **Share selected result** copies a read-only `#review=...` URL containing one complete frozen prediction and its source timestamps. Another browser can open the link and fetch the actual closed-candle data. **No DeepSeek key is included in links.**
-- **Export history / Import** moves your full research ledger between browsers. Clearing site storage deletes the local ledger unless previously exported.
-- GitHub Pages has no shared database: there is **no automatic public all-users history feed**. People can review a result you share, but cannot automatically browse other users' private local predictions. That would require explicit shared storage.
+Anyone visiting the site can open **See all results → Public archive** to review these public forecasts and see their actual outcomes. The public archive initially has no entries until GitHub Actions successfully runs. If scheduled actions are disabled or repository `GITHUB_TOKEN` lacks `contents: write`, go to **Actions → Public BTC forecast history**, enable workflows/permissions as needed, and run it once using **Run workflow**.
 
-## Optional DeepSeek live sentiment and budgeting
+Browser forecasts can run every newly completed market candle while the tab is open; **scheduled public forecasts run separately**. Opening your saved results later backfills real prices to score them. A closed browser cannot keep its on-device Timestral session running, but the public GitHub Actions job can keep its simpler historical-model archive updated.
 
-Settings allow entering a **direct** DeepSeek API key for news sentiment only; no cloud relay is required. It is optional, independent of the price model, and not claimed to influence a forecast's numerical path. Users can schedule checks from every 15 minutes to 6 hours, inspect expected input/output token usage, a full planned-session token/cost estimate, and actual tokens returned by DeepSeek. Caps are best-effort client-side controls, not provider-level billing guarantees. Browser cross-origin restrictions (CORS) can prevent direct DeepSeek calls; the app reports errors rather than pretending it succeeded. Keys are stored only in this tab's `sessionStorage`, never committed to GitHub, included in exports, or shared links.
+GitHub Pages is public and static. Locally drawn predictions stay *private to that browser* unless you use **Share selected**, which copies a read-only link containing the frozen prediction; others opening it can verify its results. Public results are shared automatically by the scheduled workflow.
 
-Market feeds use public Coinbase WebSocket/REST, with Kraken ticker and OHLC fallbacks. No exchange keys or wallets, and no trading functionality. Risk alerts include 24h change and a fast-candle threshold.
+## Optional DeepSeek web sentiment
 
-## Technical notes
+Settings include an optional direct DeepSeek key and scheduled live news searches. **News analysis does not secretly alter the price forecast.** It is a separate sentiment signal, with per-check token estimates, total session projections, actual token counts, and best-effort budget caps. No proxy/Cloudflare Worker is required. Some browsers/providers may block direct requests with CORS; the app will report this honestly rather than fake a result. The key lives in `sessionStorage` only and never enters GitHub or shared links.
 
-- Primary files: `index.html` (single responsive view), `app.js` (live data, chart, automation, persistence, sharing), `forecast-core.js` (pure prediction/scoring/calibration), `timestral-worker.js`, `timestral-prep.js`, and `deepseek.js`.
-- Public Coinbase Exchange candles: `https://api.exchange.coinbase.com/products/BTC-USD/candles`, array `[time,low,high,open,close,volume]`; maximum 300 buckets/request. Kraken REST OHLC up to 720 observations.
-- ONNX weights: [onnx-community/Timestral-5M-ONNX](https://huggingface.co/onnx-community/Timestral-5M-ONNX), © Mistral AI 2026, **Modified MIT**. Original model source: [mistralai/timestral](https://github.com/mistralai/timestral), code Apache-2.0. The `onnx-community` export's browser-safe context length is 512, prediction length 32.
-- **GitHub Pages static-site limitation:** while a browser is closed, new predictions are not generated. On returning, previously saved forecasts can be scored retroactively against publicly available actual market candles; this is *not* backdating or fabricating forecasts. To operate 24/7 unattended across devices, a server/scheduled GitHub Action/public store would be needed. The current browser workflow does not claim to operate in the background when closed.
+Risk alerts for a 24h drop or a fast candle jump also live under Settings.
 
-## Tests
+## Deployment & files
 
-Run `npm test` and `node --check app.js && node --check forecast-core.js`. Browser smoke testing uses intercepted Coinbase responses and a mocked model worker to validate the complete UI path without claiming live inference; tests cover frozen timestamp creation, closed-candle-only settlement, and future-only learning.
+- `index.html` — the single-screen, single-chart user interface.
+- `app.js` — live exchange feeds, automatic forecasting, pinned drawings, persistence, optional DeepSeek, and review dialogs.
+- `forecast-core.js` — deterministic preprocessing, on-device forecast blending, frozen results, closed-candle scoring and adaptation.
+- `timestral-worker.js` and `timestral-prep.js` — client-only Timestral-5M ONNX inference.
+- `scripts/publish-forecasts.cjs` — GitHub Actions public archive job, no secrets.
+- `data/public-history.json` — publicly reviewable, timestamped forecasts; empty until the first workflow success.
+- `.github/workflows/ci.yml`, `.github/workflows/public-forecast.yml` — tests and the scheduled public archive.
 
-**Experimental research only, not financial advice.** Bitcoin forecasts are uncertain and are not guaranteed to beat a no-change baseline.
+Set GitHub **Settings → Pages → Deploy from main branch `/`**. The static dashboard works without installing Node; the scheduled archiver runs in GitHub Actions with Node 22.
+
+Run local tests: `npm test`. These verify pinned-sketch logic, non-retroactive scoring, real-data-only public archive, model preprocessing, and UI integrity. A browser smoke test uses **intercepted/mock market prices and model replies** to verify interaction, not live-market forecasting skill.
+
+**Research only, not financial advice. No automated trading or wallet access.** Predictions are uncertain and can underperform a simple unchanged-price baseline.

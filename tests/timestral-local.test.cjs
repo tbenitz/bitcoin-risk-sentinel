@@ -11,6 +11,6 @@ test('Timestral postprocessor returns positive, ordered quantiles',()=>{
 test('Model refuses fabricated empty or too-short histories',()=>{assert.throws(()=>prep.prepare([]));assert.throws(()=>prep.prepare(Array(16).fill(1)));});
 test('New single-chart app requests local Timestral worker, not a model cloud API',()=>{
  const app=fs.readFileSync(path.join(__dirname,'../app.js'),'utf8'),worker=fs.readFileSync(path.join(__dirname,'../timestral-worker.js'),'utf8');
- assert.match(app,/new Worker\('\.\/timestral-worker\.js'\)/);assert.match(worker,/onnx-community\/Timestral-5M-ONNX/);
+ assert.match(app,/new Worker\('\.\/timestral-worker\.js\?v=11'\)/);assert.match(worker,/onnx-community\/Timestral-5M-ONNX/);
  assert.doesNotMatch(app,/Cloudflare|timestral-space|wrangler/);
 });

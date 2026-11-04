@@ -1,6 +1,8 @@
 name: Validate
 on:
   push:
+    paths-ignore:
+      - 'data/public-history.json'
   pull_request:
 jobs:
   test:
@@ -16,3 +18,4 @@ jobs:
       - run: node --check deepseek.js
       - run: node --check timestral-prep.js
       - run: node --check timestral-worker.js
+      - run: node --check scripts/publish-forecasts.cjs

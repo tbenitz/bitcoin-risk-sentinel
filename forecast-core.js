@@ -85,6 +85,22 @@ function createPrediction({candles,horizon,now=Date.now(),spot=null,sketch=null,
  const methodMadeAt={analog:now,momentum:now,flat:now};if(timestralReady)methodMadeAt.timestral=modelMadeAt;
  return {id:'btc-'+now+'-'+Math.random().toString(36).slice(2,7),horizon,asOf:start,madeAt:now,anchor:a,source:context.at(-1).source,usedCandles:context.length,spot:valid(spot)?spot:null,sketchAt:sketchAtTime||null,sketch:Array.isArray(sketch)?sketch.map(x=>({f:x.f,price:x.price})):null,methods,modelMadeAt:methodMadeAt,weights:calib.weights,calibration:{n:calib.evidence.n,trained:calib.trained,shrink:calib.shrink,stats:calib.evidence.stats},stats:{volPct:calc.volPct,driftPct:calc.driftPct,neighbors:calc.neighbors},points};
 }
+/** Attach a user path to an existing, fixed model forecast. Never alter the model.
+    A later drawing can only be scored at future closes. */
+function attachDrawing(record,{at,anchor,points}){
+ if(!record?.points?.length||!CONFIG[record.horizon])throw Error('Choose an active forecast.');
+ if(Array.isArray(record.sketch)&&record.sketch.length)throw Error('This drawing is already saved. Choose a new forecast to draw again.');
+ if(!valid(anchor)||!Number.isFinite(at)||!Array.isArray(points)||points.length<2)throw Error('Draw a longer line.');
+ const finish=record.points.at(-1).time;
+ if(at>=finish||at<record.madeAt)throw Error('This forecast has ended. Return to the latest prediction.');
+ let prev=-1;
+ const sketch=points.map(p=>({f:Number(p.f),price:Number(p.price)}));
+ for(const p of sketch){if(!Number.isFinite(p.f)||p.f<0||p.f>1||p.f<prev||!valid(p.price))throw Error('Invalid drawn path');prev=p.f;}
+ if(sketch.at(-1).f<.03)throw Error('Draw further into the future region.');
+ record.sketch=sketch;record.sketchAt=at;record.spot=anchor;record.drawnAt=at;
+ for(const p of record.points)p.user=p.time>at?sketchAt(sketch,at,p.time,anchor,finish-at):null;
+ return record;
+}
 function settle(record,candles,now=Date.now()){if(!record?.points)return 0;const cfg=CONFIG[record.horizon];if(!cfg)return 0;const index=new Map(dedupe(candles).filter(c=>!record.source||record.source===c.source).map(x=>[x.time,x.price]));let count=0;
  for(const point of record.points){if(point.time>now-1500||point.actual!==null&&point.actual!==undefined||point.time<=record.madeAt)continue;const price=index.get(point.time);if(valid(price)){point.actual=price;point.verifiedAt=now;count++;}}
  return count;
@@ -93,5 +109,5 @@ function forecastValue(record,target,name='forecast'){
  if(!record?.points?.length||target<record.asOf||target>record.points.at(-1).time)return null;const arr=[{time:record.asOf,forecast:record.anchor,lo:record.anchor,hi:record.anchor},...record.points];
  for(let i=1;i<arr.length;i++)if(target<=arr[i].time){const a=arr[i-1],b=arr[i],q=(target-a.time)/(b.time-a.time);return a[name]+(b[name]-a[name])*q;}return null;
 }
-return{CONFIG,parseCoinbase,parseKraken,dedupe,tail,analytical,sketchAt,createPrediction,scoreRecord,settle,evidence,weightsFromHistory,forecastValue};
+return{CONFIG,parseCoinbase,parseKraken,dedupe,tail,analytical,sketchAt,createPrediction,scoreRecord,settle,attachDrawing,evidence,weightsFromHistory,forecastValue};
 });
