@@ -1,6 +1,6 @@
 {
   "format": "btc-public-forecast-v1",
-  "updatedAt": "2026-11-20T09:13:28.451Z",
+  "updatedAt": "2026-11-20T17:52:42.306Z",
   "source": "Coinbase completed BTC/USD candles",
   "frequency": "Best-effort GitHub Actions, twice hourly",
   "records": [
@@ -24642,7 +24642,8 @@
           "hi": 61815.849277590954,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61709.05,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795166400000,
@@ -24651,7 +24652,8 @@
           "hi": 61938.9526267041,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61630.29,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795166700000,
@@ -24660,7 +24662,8 @@
           "hi": 61879.071882194476,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61724.7,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795167000000,
@@ -24669,7 +24672,8 @@
           "hi": 61946.44903389168,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61621.37,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795167300000,
@@ -24678,7 +24682,8 @@
           "hi": 62027.18271957275,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61593.88,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795167600000,
@@ -24687,7 +24692,8 @@
           "hi": 61965.035850267996,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61493.21,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795167900000,
@@ -24696,7 +24702,8 @@
           "hi": 62056.69472931821,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61590.18,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795168200000,
@@ -24705,7 +24712,8 @@
           "hi": 62048.1499667577,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61646.4,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795168500000,
@@ -24714,7 +24722,8 @@
           "hi": 61996.29233355747,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61646.85,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795168800000,
@@ -24723,7 +24732,8 @@
           "hi": 61974.854407008745,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61580.32,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795169100000,
@@ -24732,7 +24742,8 @@
           "hi": 61900.31397433105,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61736.44,
+          "verifiedAt": 1795197162306
         },
         {
           "time": 1795169400000,
@@ -24741,7 +24752,8 @@
           "hi": 61873.38734113273,
           "baseline": 61757.3,
           "user": null,
-          "actual": null
+          "actual": 61719.77,
+          "verifiedAt": 1795197162306
         }
       ],
       "mode": "Historical pattern + momentum (public)",
@@ -24944,6 +24956,417 @@
         {
           "time": 1795165800000,
           "price": 61757.3,
+          "source": "Coinbase"
+        }
+      ],
+      "public": true
+    },
+    {
+      "id": "public-1795197162306-1795197000000",
+      "horizon": "1h",
+      "asOf": 1795197000000,
+      "madeAt": 1795197162306,
+      "anchor": 58897.74,
+      "source": "Coinbase",
+      "usedCandles": 512,
+      "spot": null,
+      "sketchAt": null,
+      "sketch": null,
+      "methods": {
+        "analog": [
+          58964.47780201016,
+          59014.827829705086,
+          59053.553906672,
+          59147.890461167015,
+          59173.13501828363,
+          59269.35497425649,
+          59202.24403964381,
+          59152.00673216223,
+          59195.299228101576,
+          59167.593095244454,
+          59217.023822893876,
+          59180.68702596546
+        ],
+        "momentum": [
+          58853.794075368634,
+          58816.39823373685,
+          58784.54782579952,
+          58757.398436678,
+          58734.239018883556,
+          58714.46980511662,
+          58697.58409378918,
+          58683.153183944996,
+          58670.813880379224,
+          58660.25810331295,
+          58651.224226841594,
+          58643.48984178856
+        ],
+        "flat": [
+          58897.74,
+          58897.74,
+          58897.74,
+          58897.74,
+          58897.74,
+          58897.74,
+          58897.74,
+          58897.74,
+          58897.74,
+          58897.74,
+          58897.74,
+          58897.74
+        ]
+      },
+      "modelMadeAt": {
+        "analog": 1795197162306,
+        "momentum": 1795197162306,
+        "flat": 1795197162306
+      },
+      "weights": {
+        "analog": 0.5135139183302649,
+        "momentum": 0.486486081669735
+      },
+      "calibration": {
+        "n": 59,
+        "trained": true,
+        "shrink": 1,
+        "stats": {
+          "timestral": {
+            "n": 0,
+            "mape": null,
+            "medianError": null
+          },
+          "analog": {
+            "n": 59,
+            "mape": 0.36854502974923187,
+            "medianError": 0.2585049345490712
+          },
+          "momentum": {
+            "n": 59,
+            "mape": 0.3890203840120383,
+            "medianError": 0.2692997704300745
+          },
+          "flat": {
+            "n": 59,
+            "mape": 0.3234498441812524,
+            "medianError": 0.2060675620940406
+          }
+        }
+      },
+      "stats": {
+        "volPct": 0.3345036914528004,
+        "driftPct": -0.0801883963570118,
+        "neighbors": 9
+      },
+      "points": [
+        {
+          "time": 1795197300000,
+          "forecast": 58910.63170953171,
+          "lo": 58805.54803367863,
+          "hi": 59171.513574579825,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795197600000,
+          "forecast": 58918.29459307519,
+          "lo": 58774.25707663999,
+          "hi": 59405.00191911169,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795197900000,
+          "forecast": 58922.68619244301,
+          "lo": 58683.71379619021,
+          "hi": 59713.58347581687,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795198200000,
+          "forecast": 58957.921526250066,
+          "lo": 58723.317705053734,
+          "hi": 59618.84260875111,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795198500000,
+          "forecast": 58959.61822327496,
+          "lo": 58697.59623713123,
+          "hi": 59698.38220972963,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795198800000,
+          "forecast": 58999.41106254498,
+          "lo": 58734.99240493094,
+          "hi": 59836.81227476576,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795199100000,
+          "forecast": 58956.734000009325,
+          "lo": 58644.67281956523,
+          "hi": 59961.87991006111,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795199400000,
+          "forecast": 58923.91600661307,
+          "lo": 58552.420193576065,
+          "hi": 59957.14387721566,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795199700000,
+          "forecast": 58940.14440639493,
+          "lo": 58567.81864669649,
+          "hi": 60058.49780874191,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795200000000,
+          "forecast": 58920.78168292575,
+          "lo": 58475.616130655675,
+          "hi": 60284.37146757423,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795200300000,
+          "forecast": 58941.77019440008,
+          "lo": 58461.30055525761,
+          "hi": 60284.94909707818,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        },
+        {
+          "time": 1795200600000,
+          "forecast": 58919.34807275122,
+          "lo": 58529.727064149854,
+          "hi": 59793.99900071665,
+          "baseline": 58897.74,
+          "user": null,
+          "actual": null
+        }
+      ],
+      "mode": "Historical pattern + momentum (public)",
+      "inputTail": [
+        {
+          "time": 1795185300000,
+          "price": 61726.48,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795185600000,
+          "price": 61727.45,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795185900000,
+          "price": 61400.44,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795186200000,
+          "price": 61490.49,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795186500000,
+          "price": 61621.37,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795186800000,
+          "price": 61701.76,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795187100000,
+          "price": 61521.16,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795187400000,
+          "price": 61167.83,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795187700000,
+          "price": 60853.07,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795188000000,
+          "price": 60198.35,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795188300000,
+          "price": 60082.13,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795188600000,
+          "price": 60318,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795188900000,
+          "price": 60173.42,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795189200000,
+          "price": 60071.39,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795189500000,
+          "price": 59846.31,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795189800000,
+          "price": 59708.45,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795190100000,
+          "price": 59540.81,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795190400000,
+          "price": 59395.69,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795190700000,
+          "price": 59027.17,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795191000000,
+          "price": 59282.01,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795191300000,
+          "price": 59626.57,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795191600000,
+          "price": 59272.45,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795191900000,
+          "price": 59314.2,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795192200000,
+          "price": 59135.16,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795192500000,
+          "price": 59148.64,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795192800000,
+          "price": 59408.27,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795193100000,
+          "price": 59415.13,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795193400000,
+          "price": 59451.57,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795193700000,
+          "price": 59377.6,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795194000000,
+          "price": 59467.19,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795194300000,
+          "price": 59121.35,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795194600000,
+          "price": 59350.95,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795194900000,
+          "price": 59185.43,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795195200000,
+          "price": 59261.02,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795195500000,
+          "price": 59478.52,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795195800000,
+          "price": 59200.75,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795196100000,
+          "price": 59099.21,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795196400000,
+          "price": 58946.35,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795196700000,
+          "price": 58969.97,
+          "source": "Coinbase"
+        },
+        {
+          "time": 1795197000000,
+          "price": 58897.74,
           "source": "Coinbase"
         }
       ],
